@@ -1,6 +1,6 @@
 {
-  "name": "Jogo da Memória",
-  "description": "Jogo da memória interativo com múltiplos temas, modos solo e 2 jogadores, efeitos sonoros e estatísticas.",
+  "name": "Mestre do Xadrez - Jogo de Xadrez Completo",
+  "description": "Jogo de xadrez interativo com modo vs Computador (IA), 2 Jogadores local, relógios de tempo FIDE, temas de tabuleiro, histórico de lances e efeitos sonoros.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
