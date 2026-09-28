@@ -212,6 +212,116 @@ class ChessAudio {
       osc.stop(t + 0.06);
     } catch {}
   }
+
+  // Memory card flip (light swoosh click)
+  public playFlip() {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(340, t);
+      osc.frequency.exponentialRampToValueAtTime(580, t + 0.04);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.06);
+    } catch {}
+  }
+
+  // Memory match chime
+  public playMatch() {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      [523.25, 659.25, 783.99].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, t + i * 0.06);
+        gain.gain.setValueAtTime(0.15, t + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.28);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.06);
+        osc.stop(t + i * 0.06 + 0.3);
+      });
+    } catch {}
+  }
+
+  // Memory mismatch soft error
+  public playMismatch() {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      [240, 200].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.09);
+        gain.gain.setValueAtTime(0.12, t + i * 0.09);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.14);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.09);
+        osc.stop(t + i * 0.09 + 0.16);
+      });
+    } catch {}
+  }
+
+  // Combo streak fanfare
+  public playCombo(streak: number) {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      const baseFreq = 440 + Math.min(6, streak) * 70;
+      [baseFreq, baseFreq * 1.25, baseFreq * 1.5].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.05);
+        gain.gain.setValueAtTime(0.18, t + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.05 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.05);
+        osc.stop(t + i * 0.05 + 0.38);
+      });
+    } catch {}
+  }
+
+  // Power-up hint sound
+  public playHint() {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      [880, 1108.73, 1318.51, 1760].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.04);
+        gain.gain.setValueAtTime(0.1, t + i * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.04 + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.04);
+        osc.stop(t + i * 0.04 + 0.22);
+      });
+    } catch {}
+  }
 }
 
 export const chessAudio = new ChessAudio();

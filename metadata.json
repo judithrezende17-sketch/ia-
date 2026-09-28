@@ -1,6 +1,6 @@
 {
-  "name": "Mestre do Xadrez - Jogo de Xadrez Completo",
-  "description": "Jogo de xadrez interativo com modo vs Computador (IA), 2 Jogadores local, relógios de tempo FIDE, temas de tabuleiro, histórico de lances e efeitos sonoros.",
+  "name": "Arena de Jogos - Xadrez & Jogo da Memória",
+  "description": "Plataforma interativa de jogos com Xadrez FIDE completo (IA e 2 jogadores) e Jogo da Memória dinâmico com múltiplos temas, modos e efeitos sonoros.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

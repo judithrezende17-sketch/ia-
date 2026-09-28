@@ -18,11 +18,23 @@ import { MoveHistory } from './components/MoveHistory';
 import { ControlsBar } from './components/ControlsBar';
 import { GameOverModal } from './components/GameOverModal';
 import { RulesModal } from './components/RulesModal';
-import { Crown, Sparkles } from 'lucide-react';
+import { MemoryGame } from './memory/MemoryGame';
+import { Crown, Sparkles, Layers } from 'lucide-react';
 
 const STORAGE_KEY_SETTINGS = 'chess_master_settings_v1';
+const STORAGE_KEY_ACTIVE_GAME = 'arena_active_game_v1';
 
 export default function App() {
+  // Master Game Selector: Chess vs Memory Game
+  const [activeGameTab, setActiveGameTab] = useState<'chess' | 'memory'>(() => {
+    if (typeof window === 'undefined') return 'chess';
+    try {
+      const savedTab = localStorage.getItem(STORAGE_KEY_ACTIVE_GAME);
+      if (savedTab === 'memory' || savedTab === 'chess') return savedTab;
+    } catch {}
+    return 'chess';
+  });
+
   // Game Instance State
   const [game, setGame] = useState<Chess>(() => new Chess());
   const [gameMode, setGameMode] = useState<GameMode>('vsAi');
@@ -387,116 +399,166 @@ export default function App() {
   const hasTimer = TIME_CONTROLS[timeControl].seconds > 0;
   const isPlayerTurn = gameMode === 'passAndPlay' || game.turn() === 'w';
 
+  const handleSelectGameTab = (tab: 'chess' | 'memory') => {
+    setActiveGameTab(tab);
+    chessAudio.playClick();
+    try {
+      localStorage.setItem(STORAGE_KEY_ACTIVE_GAME, tab);
+    } catch {}
+  };
+
   return (
     <div className="min-h-screen w-full bg-chess-room text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
-      {/* Top Header */}
-      <header className="w-full bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xl sm:text-2xl">♟️</span>
+      {/* Top Header with Game Hub Switcher */}
+      <header className="w-full bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="text-xl sm:text-2xl">
+              {activeGameTab === 'chess' ? '♟️' : '🃏'}
+            </span>
             <div>
               <span className="text-base sm:text-lg font-bold tracking-tight text-white font-chess uppercase">
-                Mestre do Xadrez
+                {activeGameTab === 'chess' ? 'Mestre do Xadrez' : 'Jogo da Memória'}
               </span>
               <span className="hidden sm:inline-block ml-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                FIDE RULES
+                {activeGameTab === 'chess' ? 'FIDE' : 'ARCADE'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Center Tabs: Xadrez vs Jogo da Memória */}
+          <div className="flex items-center gap-1 p-1 bg-neutral-900 border border-neutral-800 rounded-xl">
             <button
               type="button"
-              onClick={() => {
-                chessAudio.playClick();
-                setIsRulesOpen(true);
-              }}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-300 hover:text-white bg-neutral-900 border border-neutral-800 transition-colors"
+              onClick={() => handleSelectGameTab('chess')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeGameTab === 'chess'
+                  ? 'bg-amber-400 text-slate-950 shadow-md scale-[1.02]'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
             >
-              Regras do Xadrez
+              <span>♟️</span>
+              <span>Xadrez</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => handleSelectGameTab('memory')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeGameTab === 'memory'
+                  ? 'bg-amber-400 text-slate-950 shadow-md scale-[1.02]'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <span>🃏</span>
+              <span>Jogo da Memória</span>
+            </button>
+          </div>
+
+          {/* Right Header Action */}
+          <div className="flex items-center gap-2 shrink-0">
+            {activeGameTab === 'chess' && (
+              <button
+                type="button"
+                onClick={() => {
+                  chessAudio.playClick();
+                  setIsRulesOpen(true);
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-300 hover:text-white bg-neutral-900 border border-neutral-800 transition-colors"
+              >
+                Regras do Xadrez
+              </button>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Main Chess Arena */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
-        
-        {/* Left Column: Black Clock, Board, White Clock */}
-        <section aria-label="Tabuleiro e Relógios de Xadrez" className="w-full max-w-[540px] space-y-2.5">
-          {/* Top Player (Black by default, or White if flipped) */}
-          <ChessPlayerCard
-            color={isFlipped ? 'w' : 'b'}
-            timeSeconds={isFlipped ? whiteTime : blackTime}
-            isActiveTurn={game.turn() === (isFlipped ? 'w' : 'b') && !isGameOver}
-            gameMode={gameMode}
-            aiDifficulty={aiDifficulty}
-            capturedPieces={isFlipped ? whiteCaptured : blackCaptured}
-            materialDifference={isFlipped ? whiteDiff : blackDiff}
-            hasTimer={hasTimer}
-          />
+      {/* Main Arena */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col justify-start">
+        {activeGameTab === 'memory' ? (
+          /* MEMORY GAME ARENA */
+          <MemoryGame />
+        ) : (
+          /* CHESS GAME ARENA */
+          <div className="w-full flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
+            {/* Left Column: Black Clock, Board, White Clock */}
+            <section aria-label="Tabuleiro e Relógios de Xadrez" className="w-full max-w-[540px] space-y-2.5">
+              {/* Top Player (Black by default, or White if flipped) */}
+              <ChessPlayerCard
+                color={isFlipped ? 'w' : 'b'}
+                timeSeconds={isFlipped ? whiteTime : blackTime}
+                isActiveTurn={game.turn() === (isFlipped ? 'w' : 'b') && !isGameOver}
+                gameMode={gameMode}
+                aiDifficulty={aiDifficulty}
+                capturedPieces={isFlipped ? whiteCaptured : blackCaptured}
+                materialDifference={isFlipped ? whiteDiff : blackDiff}
+                hasTimer={hasTimer}
+              />
 
-          {/* Chess Board Component */}
-          <ChessBoard
-            game={game}
-            boardTheme={boardTheme}
-            isFlipped={isFlipped}
-            onMakeMove={handleMakeMove}
-            isInteractive={!isGameOver && isPlayerTurn && !isAiThinking}
-            lastMove={lastMove}
-          />
+              {/* Chess Board Component */}
+              <ChessBoard
+                game={game}
+                boardTheme={boardTheme}
+                isFlipped={isFlipped}
+                onMakeMove={handleMakeMove}
+                isInteractive={!isGameOver && isPlayerTurn && !isAiThinking}
+                lastMove={lastMove}
+              />
 
-          {/* Bottom Player (White by default, or Black if flipped) */}
-          <ChessPlayerCard
-            color={isFlipped ? 'b' : 'w'}
-            timeSeconds={isFlipped ? blackTime : whiteTime}
-            isActiveTurn={game.turn() === (isFlipped ? 'b' : 'w') && !isGameOver}
-            gameMode={gameMode}
-            aiDifficulty={aiDifficulty}
-            capturedPieces={isFlipped ? blackCaptured : whiteCaptured}
-            materialDifference={isFlipped ? blackDiff : whiteDiff}
-            hasTimer={hasTimer}
-          />
-        </section>
+              {/* Bottom Player (White by default, or Black if flipped) */}
+              <ChessPlayerCard
+                color={isFlipped ? 'b' : 'w'}
+                timeSeconds={isFlipped ? blackTime : whiteTime}
+                isActiveTurn={game.turn() === (isFlipped ? 'b' : 'w') && !isGameOver}
+                gameMode={gameMode}
+                aiDifficulty={aiDifficulty}
+                capturedPieces={isFlipped ? blackCaptured : whiteCaptured}
+                materialDifference={isFlipped ? blackDiff : whiteDiff}
+                hasTimer={hasTimer}
+              />
+            </section>
 
-        {/* Right Column: Controls, Move History & Settings */}
-        <section aria-label="Controles e Histórico da Partida" className="w-full max-w-[540px] lg:max-w-md space-y-4">
-          {/* Controls Bar */}
-          <ControlsBar
-            gameMode={gameMode}
-            onSelectGameMode={(m) => {
-              setGameMode(m);
-              handleNewGame();
-            }}
-            aiDifficulty={aiDifficulty}
-            onSelectAIDifficulty={setAiDifficulty}
-            timeControl={timeControl}
-            onSelectTimeControl={(tc) => {
-              setTimeControl(tc);
-              const cfg = TIME_CONTROLS[tc];
-              setWhiteTime(cfg.seconds);
-              setBlackTime(cfg.seconds);
-            }}
-            boardTheme={boardTheme}
-            onSelectBoardTheme={handleSelectTheme}
-            onNewGame={handleNewGame}
-            onUndoMove={handleUndoMove}
-            canUndo={moveHistory.length > 0}
-            onFlipBoard={() => setIsFlipped((f) => !f)}
-            onResign={handleResign}
-            isMuted={isMuted}
-            onToggleMute={handleToggleMute}
-            onOpenRules={() => setIsRulesOpen(true)}
-            isGameOver={isGameOver}
-          />
+            {/* Right Column: Controls, Move History & Settings */}
+            <section aria-label="Controles e Histórico da Partida" className="w-full max-w-[540px] lg:max-w-md space-y-4">
+              {/* Controls Bar */}
+              <ControlsBar
+                gameMode={gameMode}
+                onSelectGameMode={(m) => {
+                  setGameMode(m);
+                  handleNewGame();
+                }}
+                aiDifficulty={aiDifficulty}
+                onSelectAIDifficulty={setAiDifficulty}
+                timeControl={timeControl}
+                onSelectTimeControl={(tc) => {
+                  setTimeControl(tc);
+                  const cfg = TIME_CONTROLS[tc];
+                  setWhiteTime(cfg.seconds);
+                  setBlackTime(cfg.seconds);
+                }}
+                boardTheme={boardTheme}
+                onSelectBoardTheme={handleSelectTheme}
+                onNewGame={handleNewGame}
+                onUndoMove={handleUndoMove}
+                canUndo={moveHistory.length > 0}
+                onFlipBoard={() => setIsFlipped((f) => !f)}
+                onResign={handleResign}
+                isMuted={isMuted}
+                onToggleMute={handleToggleMute}
+                onOpenRules={() => setIsRulesOpen(true)}
+                isGameOver={isGameOver}
+              />
 
-          {/* Move History Component */}
-          <MoveHistory
-            history={moveHistory}
-            pgn={game.pgn()}
-            fen={game.fen()}
-          />
-        </section>
+              {/* Move History Component */}
+              <MoveHistory
+                history={moveHistory}
+                pgn={game.pgn()}
+                fen={game.fen()}
+              />
+            </section>
+          </div>
+        )}
       </main>
 
       {/* Game Over Modal */}
