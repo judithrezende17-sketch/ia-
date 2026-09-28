@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@layer utilities {
+  .font-chess {
+    font-family: 'Cinzel', Georgia, serif;
+  }
+}
+
+/* Wood luxury tabletop background */
+.bg-chess-room {
+  background-color: #0c0d10;
+  background-image: 
+    radial-gradient(circle at 50% 15%, rgba(217, 119, 6, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 10% 85%, rgba(14, 165, 233, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 90% 85%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
+}
+
+/* Chess board coordinates text */
+.coord-text {
+  user-select: none;
+  pointer-events: none;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+}
