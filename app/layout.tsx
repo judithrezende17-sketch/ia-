@@ -3,10 +3,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Arena de Jogos - Xadrez & Jogo da Memória',
-  description: 'Plataforma interativa de jogos com Xadrez FIDE completo (IA e 2 jogadores) e Jogo da Memória dinâmico com múltiplos temas, modos e efeitos sonoros.',
+  description: 'Plataforma interativa de jogos clássicos: Xadrez FIDE, Jogo de Damas 8x8 oficial com regras brasileiras/clássicas e IA, e Jogo da Memória dinâmico com efeitos sonoros procedurais.',
   openGraph: {
     title: 'Arena de Jogos - Xadrez & Jogo da Memória',
-    description: 'Plataforma interativa de jogos com Xadrez FIDE completo (IA e 2 jogadores) e Jogo da Memória dinâmico com múltiplos temas, modos e efeitos sonoros.',
+    description: 'Plataforma interativa de jogos clássicos: Xadrez FIDE, Jogo de Damas 8x8 oficial com regras brasileiras/clássicas e IA, e Jogo da Memória dinâmico com efeitos sonoros procedurais.',
     type: 'website',
   },
   twitter: {

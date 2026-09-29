@@ -21,21 +21,15 @@ import { ControlsBar } from './components/ControlsBar';
 import { GameOverModal } from './components/GameOverModal';
 import { RulesModal } from './components/RulesModal';
 import { MemoryGame } from './memory/MemoryGame';
+import { CheckersGame } from './checkers/CheckersGame';
 import { Crown, Sparkles, Layers } from 'lucide-react';
 
 const STORAGE_KEY_SETTINGS = 'chess_master_settings_v1';
 const STORAGE_KEY_ACTIVE_GAME = 'arena_active_game_v1';
 
 export default function App() {
-  // Master Game Selector: Chess vs Memory Game
-  const [activeGameTab, setActiveGameTab] = useState<'chess' | 'memory'>(() => {
-    if (typeof window === 'undefined') return 'chess';
-    try {
-      const savedTab = localStorage.getItem(STORAGE_KEY_ACTIVE_GAME);
-      if (savedTab === 'memory' || savedTab === 'chess') return savedTab;
-    } catch {}
-    return 'chess';
-  });
+  // Master Game Selector: Chess vs Checkers vs Memory Game
+  const [activeGameTab, setActiveGameTab] = useState<'chess' | 'checkers' | 'memory'>('chess');
 
   // Game Instance State
   const [game, setGame] = useState<Chess>(() => new Chess());
@@ -64,6 +58,16 @@ export default function App() {
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Restore saved active tab & settings safely on client mount
+  useEffect(() => {
+    try {
+      const savedTab = localStorage.getItem(STORAGE_KEY_ACTIVE_GAME);
+      if (savedTab === 'memory' || savedTab === 'chess' || savedTab === 'checkers') {
+        setActiveGameTab(savedTab as 'chess' | 'checkers' | 'memory');
+      }
+    } catch {}
+  }, []);
 
   // Load sound settings on mount
   useEffect(() => {
@@ -401,7 +405,7 @@ export default function App() {
   const hasTimer = TIME_CONTROLS[timeControl].seconds > 0;
   const isPlayerTurn = gameMode === 'passAndPlay' || game.turn() === 'w';
 
-  const handleSelectGameTab = (tab: 'chess' | 'memory') => {
+  const handleSelectGameTab = (tab: 'chess' | 'checkers' | 'memory') => {
     setActiveGameTab(tab);
     chessAudio.playClick();
     try {
@@ -413,28 +417,32 @@ export default function App() {
     <div className="min-h-screen w-full bg-chess-room text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
       {/* Top Header with Game Hub Switcher */}
       <header className="w-full bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
           {/* Logo */}
           <div className="flex items-center gap-2.5 shrink-0">
             <span className="text-xl sm:text-2xl">
-              {activeGameTab === 'chess' ? '♟️' : '🃏'}
+              {activeGameTab === 'chess' ? '♟️' : activeGameTab === 'checkers' ? '⚪' : '🃏'}
             </span>
             <div>
               <span className="text-base sm:text-lg font-bold tracking-tight text-white font-chess uppercase">
-                {activeGameTab === 'chess' ? 'Mestre do Xadrez' : 'Jogo da Memória'}
+                {activeGameTab === 'chess'
+                  ? 'Mestre do Xadrez'
+                  : activeGameTab === 'checkers'
+                    ? 'Jogo de Damas'
+                    : 'Jogo da Memória'}
               </span>
               <span className="hidden sm:inline-block ml-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                {activeGameTab === 'chess' ? 'FIDE' : 'ARCADE'}
+                {activeGameTab === 'chess' ? 'FIDE' : activeGameTab === 'checkers' ? 'OFICIAL 8X8' : 'ARCADE'}
               </span>
             </div>
           </div>
 
-          {/* Center Tabs: Xadrez vs Jogo da Memória */}
-          <div className="flex items-center gap-1 p-1 bg-neutral-900 border border-neutral-800 rounded-xl">
+          {/* Center Tabs: Xadrez vs Damas vs Jogo da Memória */}
+          <div className="flex items-center gap-1 p-1 bg-neutral-900 border border-neutral-800 rounded-xl overflow-x-auto">
             <button
               type="button"
               onClick={() => handleSelectGameTab('chess')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeGameTab === 'chess'
                   ? 'bg-amber-400 text-slate-950 shadow-md scale-[1.02]'
                   : 'text-neutral-400 hover:text-white'
@@ -446,15 +454,28 @@ export default function App() {
 
             <button
               type="button"
+              onClick={() => handleSelectGameTab('checkers')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeGameTab === 'checkers'
+                  ? 'bg-amber-400 text-slate-950 shadow-md scale-[1.02]'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <span>⚪</span>
+              <span>Damas</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => handleSelectGameTab('memory')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeGameTab === 'memory'
                   ? 'bg-amber-400 text-slate-950 shadow-md scale-[1.02]'
                   : 'text-neutral-400 hover:text-white'
               }`}
             >
               <span>🃏</span>
-              <span>Jogo da Memória</span>
+              <span>Memória</span>
             </button>
           </div>
 
@@ -467,7 +488,7 @@ export default function App() {
                   chessAudio.playClick();
                   setIsRulesOpen(true);
                 }}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-300 hover:text-white bg-neutral-900 border border-neutral-800 transition-colors"
+                className="hidden sm:inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-300 hover:text-white bg-neutral-900 border border-neutral-800 transition-colors cursor-pointer"
               >
                 Regras do Xadrez
               </button>
@@ -478,7 +499,10 @@ export default function App() {
 
       {/* Main Arena */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col justify-start">
-        {activeGameTab === 'memory' ? (
+        {activeGameTab === 'checkers' ? (
+          /* CHECKERS GAME ARENA */
+          <CheckersGame />
+        ) : activeGameTab === 'memory' ? (
           /* MEMORY GAME ARENA */
           <MemoryGame />
         ) : (

@@ -322,6 +322,98 @@ class ChessAudio {
       });
     } catch {}
   }
+
+  // Game start ascending chime
+  public playGameStart() {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      [440, 554.37, 659.25, 880].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.06);
+        gain.gain.setValueAtTime(0.12, t + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.06);
+        osc.stop(t + i * 0.06 + 0.28);
+      });
+    } catch {}
+  }
+
+  // Defeat / Loss descending tones
+  public playDefeat() {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      [440, 392, 349.23, 261.63].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, t + i * 0.12);
+        gain.gain.setValueAtTime(0.15, t + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.12);
+        osc.stop(t + i * 0.12 + 0.4);
+      });
+    } catch {}
+  }
+
+  // Crowning / Dama promotion fanfare
+  public playPromote() {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      [587.33, 739.99, 880, 1174.66].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, t + i * 0.07);
+        gain.gain.setValueAtTime(0.16, t + i * 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.07 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.07);
+        osc.stop(t + i * 0.07 + 0.38);
+      });
+    } catch {}
+  }
+
+  // Clock warning
+  public playWarning() {
+    this.playClockLow();
+  }
+
+  // Invalid move thud
+  public playInvalid() {
+    if (this.isMuted) return;
+    const ctx = this.init();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(120, t);
+      osc.frequency.exponentialRampToValueAtTime(60, t + 0.09);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.11);
+    } catch {}
+  }
 }
 
 export const chessAudio = new ChessAudio();
